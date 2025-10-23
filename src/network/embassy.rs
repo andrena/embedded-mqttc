@@ -126,17 +126,24 @@ impl <'a> EmbassyNetworkConnection<'a> {
                 Ok(addrs) => {
                     if let Some(addr) = addrs.into_iter().next() {
                         info!("dns aaaa: {} -> {}", hostname, addr);
-                        Ok(Some(addr))
+                        Some(addr)
                     } else {
                         info!("dns aaaa: {} -> nothing", hostname);
-                        Ok(None)
+                        None
                     }
                 },
                 Err(embassy_net::dns::Error::InvalidName) => {
                     info!("dns aaaa: {} -> invalid name", hostname);
-                    Ok(None)
+                    None
                 },
-                Err(e) => Err(e)
+                Err(embassy_net::dns::Error::NameTooLong) => {
+                    info!("dns aaaa: {} -> name too long", hostname);
+                    None
+                }
+                Err(embassy_net::dns::Error::Failed) => {
+                    info!("dns aaaa: {} -> failed", hostname);
+                    None
+                }
             }
         };
 
@@ -147,30 +154,28 @@ impl <'a> EmbassyNetworkConnection<'a> {
                 Ok(addrs) => {
                     if let Some(addr) = addrs.into_iter().next() {
                         info!("dns a: {} -> {}", hostname, addr);
-                        Ok(Some(addr))
+                        Some(addr)
                     } else {
                         info!("dns a: {} -> nothing", hostname);
-                        Ok(None)
+                        None
                     }
                 }
                 Err(embassy_net::dns::Error::InvalidName) => {
                     info!("dns a: {} -> invalid name", hostname);
-                    Ok(None)
+                    None
                 },
-                Err(e) => Err(e)
+                Err(embassy_net::dns::Error::NameTooLong) => {
+                    info!("dns aaaa: {} -> name too long", hostname);
+                    None
+                }
+                Err(embassy_net::dns::Error::Failed) => {
+                    info!("dns aaaa: {} -> failed", hostname);
+                    None
+                }
             }
         };
         
         let (r_v4, r_v6) = join(ip_v4_future, ip_v6_future).await;
-        let r_v4 = r_v4.map_err(|e| {
-            error!("DNS A request failed: {}", e);
-            NetworkError::DnsFailed
-        })?;
-
-        let r_v6 = r_v6.map_err(|e| {
-            error!("DNS AAAA request failed: {}", e);
-            NetworkError::DnsFailed
-        })?;
 
         r_v4.or(r_v6).ok_or(NetworkError::HostNotFound)
     }
