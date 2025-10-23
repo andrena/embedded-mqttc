@@ -20,7 +20,7 @@ pub trait WithQueuedVecInner<A: 'static, T: 'static, const N: usize> {
         self.with_queued_vec_inner(|inner| inner.try_push(item))
     }
 
-    /// Perfroms an operation synchronously on the contained elements and returns the result.
+    /// Performs an operation synchronously on the contained elements and returns the result.
     fn operate<F, O>(&self, operation: F) -> O 
         where F: FnOnce(&mut Vec<T, N>) -> O {
 
@@ -33,7 +33,7 @@ pub trait WithQueuedVecInner<A: 'static, T: 'static, const N: usize> {
         })
     }
 
-    /// Retains only the elemnts matching [`f`]
+    /// Retains only the elements matching [`f`]
     fn retain<F>(&self, f: F) where F: FnMut(&T) -> bool{
         self.operate(|data| {
             data.retain(f);
@@ -113,7 +113,7 @@ impl <A, T: 'static, const N: usize> QueuedVecInner<A, T, N> {
                 .unwrap();
             
             self.data.push(item)
-                .map_err(|_| "Err: checkt if data is bull, but push failed").unwrap();
+                .map_err(|_| "Err: checked if data is bull, but push failed").unwrap();
 
             Poll::Ready(())
         }

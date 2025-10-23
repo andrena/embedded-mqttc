@@ -10,17 +10,17 @@ use super::fake::{BufferedStream, ServerConnection};
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum MqttPacketError {
 
-    #[error("error whie encoding / decoding packet")]
+    #[error("error while encoding / decoding packet")]
     CodecError,
     
-    #[error("error whie writing / reading packet")]
+    #[error("error while writing / reading packet")]
     IoError(embedded_io_async::ErrorKind),
 
     #[error("something wrong with the network")]
     NetworkError(super::NetworkError),
 
-    #[error("buffer has not enaugh space left to write packet")]
-    NotEnaughBufferSpace
+    #[error("buffer has not enough space left to write packet")]
+    NotEnoughBufferSpace
 }
 
 pub trait WriteMqttPacketMut {
@@ -39,7 +39,7 @@ impl <T> WriteMqttPacketMut for T where T: BufferWriter {
                 Ok(())
             },
             Err(mqttrs2::Error::WriteZero) => {
-                Err(MqttPacketError::NotEnaughBufferSpace)
+                Err(MqttPacketError::NotEnoughBufferSpace)
             }
             Err(e) => {
                 error!("cannot write mqtt packet: {}", e);

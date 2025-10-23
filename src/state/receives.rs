@@ -73,8 +73,8 @@ impl ReceivedPublish {
             Ok(()) => {
                 self.state = ReceiveState::Done;
             },
-            Err(MqttPacketError::NotEnaughBufferSpace) => {
-                debug!("not enaugh space to write pubcomp to send buffer for {}", pid);
+            Err(MqttPacketError::NotEnoughBufferSpace) => {
+                debug!("not enough space to write pubcomp to send buffer for {}", pid);
             },
             Err(e) => {
                 error!("could not send pubcomp to {}: {}", pid, e);
@@ -96,8 +96,8 @@ impl ReceivedPublish {
             Ok(()) => {
                 self.state = ReceiveState::Done;
             },
-            Err(MqttPacketError::NotEnaughBufferSpace) => {
-                debug!("not enaugh space to write puback to send buffer for {}", pid);
+            Err(MqttPacketError::NotEnoughBufferSpace) => {
+                debug!("not enough space to write puback to send buffer for {}", pid);
             },
             Err(e) => {
                 error!("could not send puback to {}: {}", pid, e);
@@ -111,8 +111,8 @@ impl ReceivedPublish {
             Ok(()) => {
                 self.state = ReceiveState::AwaitPubrel(time::now());
             },
-            Err(MqttPacketError::NotEnaughBufferSpace) => {
-                debug!("not enaugh space to write pubrec to send buffer for {}", pid);
+            Err(MqttPacketError::NotEnoughBufferSpace) => {
+                debug!("not enough space to write pubrec to send buffer for {}", pid);
             },
             Err(e) => {
                 error!("could not send pubrec to {}: {}", pid, e);

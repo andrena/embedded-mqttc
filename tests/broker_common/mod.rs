@@ -13,7 +13,7 @@ pub fn random_topic(name: Option<&str>) -> String {
     topic
 }
 
-pub fn create_sinple_client(config: &super::BrokerConfig) -> (AsyncClient, Receiver<Publish>, CancellationToken) {
+pub fn create_simple_client(config: &super::BrokerConfig) -> (AsyncClient, Receiver<Publish>, CancellationToken) {
     let client_id = Uuid::new_v4().to_string();
     let shutdown_token = CancellationToken::new();
 
@@ -22,7 +22,7 @@ pub fn create_sinple_client(config: &super::BrokerConfig) -> (AsyncClient, Recei
     let mut options = MqttOptions::new(client_id, &config.host, config.unwrap_port());
 
     if let Some(username) = &config.username {
-        let password = config.password.as_ref().expect("username is given, password mutst be too");
+        let password = config.password.as_ref().expect("username is given, password must be too");
         options.set_credentials(username, password);
     }
 

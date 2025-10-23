@@ -252,9 +252,9 @@ impl SubQueue {
         self.operate(|requests|{
 
             for request in requests.iter_mut() {
-                // TODO answer quetsion:
+                // TODO answer question:
                 //   Should the loop `break;` if a publish cannot be written to buffer 
-                //   beause of insufficient space?
+                //   because of insufficient space?
                 if request.state.should_publish(time::now()) {
                     request.send(send_buffer)?;
                 }
@@ -503,7 +503,7 @@ mod tests {
                 let qos = res.as_ref().unwrap();
                 assert_eq!(*qos, QoS::ExactlyOnce);
             } else {
-                panic!("expectes subscribe result");
+                panic!("expected subscribe result");
             }
         }
 

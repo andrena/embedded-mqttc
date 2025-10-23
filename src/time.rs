@@ -1,5 +1,5 @@
 /// Calls to [`Instant::now()`] fail during tests. So this module is used to exchange the 
-/// functions dynamicly
+/// functions dynamically
 /// 
 /// This module is also used to dynamically exchange [`std::time`] and [`embassy_time`]
 

@@ -10,7 +10,7 @@ use mqttrs2::{LastWill, QoS};
 use test_log::test;
 
 mod broker_common;
-use broker_common::{create_sinple_client, random_topic};
+use broker_common::{create_simple_client, random_topic};
 use uuid::Uuid;
 
 const MQTT_DEFAULT_PORT: u16 = 1883;
@@ -240,7 +240,7 @@ async fn test_broker_subscribe() {
 
     let topic = random_topic(None);
     
-    let (client, _, cancel_token) = create_sinple_client(&broker_config);
+    let (client, _, cancel_token) = create_simple_client(&broker_config);
 
     let publish_future = async {
         let payload = "test-payload-hjh3".as_bytes();
@@ -328,7 +328,7 @@ async fn test_broker_publish() {
         tracing::trace!("TEST: publish_future done");
     };
 
-    let (client, mut receiver, cancel_token) = create_sinple_client(&broker_config);
+    let (client, mut receiver, cancel_token) = create_simple_client(&broker_config);
     let subscribe_future = async {
         client.subscribe(&topic, rumqttc::QoS::AtLeastOnce).await.unwrap();
         let publish = receiver.recv().await.expect("there must be a publish");
@@ -390,7 +390,7 @@ async fn test_auto_subscribe() {
         client.disconnect().await;
     };
 
-    let (publish_client, _, cancel_token) = create_sinple_client(&broker_config);
+    let (publish_client, _, cancel_token) = create_simple_client(&broker_config);
 
     let initial_auto_subscribe_success_future = client.on(|event| *event == MqttEvent::InitialSubscribesDone);
     let publish_future = async {
@@ -457,7 +457,7 @@ async fn test_last_will() {
     let client_future = select(client_future, client_loop_future);
 
 
-    let (client, mut receiver, cancel_token) = create_sinple_client(&broker_config);
+    let (client, mut receiver, cancel_token) = create_simple_client(&broker_config);
     let subscribe_future = async {
         client.subscribe(&topic, rumqttc::QoS::AtLeastOnce).await.unwrap();
         

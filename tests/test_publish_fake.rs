@@ -2,7 +2,7 @@
 
 use std::{cell::RefCell, pin::Pin};
 
-use embedded_mqttc::network::{fake::{new_connection, ClientConnection, ConnectionRessources, ReadAtomic, ServerConnection}, mqtt::WriteMqttPacket};
+use embedded_mqttc::network::{fake::{new_connection, ClientConnection, ConnectionResources, ReadAtomic, ServerConnection}, mqtt::WriteMqttPacket};
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embedded_io_async::Read;
 use mqttrs2::{decode_slice, Connack, ConnectReturnCode, LastWill, Packet, PacketType, QoS};
@@ -17,7 +17,7 @@ struct Test <'a, 'l, const N: usize> {
 
 impl <'a, 'l, const N: usize> Test<'a,'l,  N> {
 
-    fn create(client_id: &str, credentials: Option<ClientCredentials>, resources: &'a ConnectionRessources<N>, last_will: Option<LastWill<'l>>) -> Self {
+    fn create(client_id: &str, credentials: Option<ClientCredentials>, resources: &'a ConnectionResources<N>, last_will: Option<LastWill<'l>>) -> Self {
         let mut config = ClientConfig {
             client_id: heapless::String::new(), 
             credentials, 
@@ -63,7 +63,7 @@ impl <'a, 'l, const N: usize> Test<'a,'l,  N> {
 
 #[tokio::test]
 async fn test_connect() {
-    let resources = ConnectionRessources::<256>::new();
+    let resources = ConnectionResources::<256>::new();
     let (mut client, mut server) = new_connection(&resources);
     let client = Pin::new(&mut client);
 
@@ -111,7 +111,7 @@ async fn test_connect() {
 #[tokio::test]
 #[ntest::timeout(1000)]
 async fn test_publish() {
-    let resources = ConnectionRessources::<256>::new();
+    let resources = ConnectionResources::<256>::new();
     
     let test = Test::create("1234567890", None, &resources, None);
 
@@ -151,7 +151,7 @@ async fn test_publish() {
 #[tokio::test]
 #[ntest::timeout(1000)]
 async fn test_publish_with_last_will() {
-    let resources = ConnectionRessources::<256>::new();
+    let resources = ConnectionResources::<256>::new();
 
 
     let last_will = LastWill{

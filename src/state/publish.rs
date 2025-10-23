@@ -13,7 +13,7 @@ const MAX_CONCURRENT_PUBLISHES: usize = 8;
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 enum RequestState {
     
-    /// Initial Puhlish State for all publishes: Nothing is done yet
+    /// Initial Publish State for all publishes: Nothing is done yet
     Initial,
 
     // QoS 1 At Least Once
@@ -152,9 +152,9 @@ impl PublishQueue {
         self.publishes.operate(|publishes|{
 
             for publish in publishes.iter_mut() {
-                // TODO answer quetsion:
+                // TODO answer question:
                 //   Should the loop `break;` if a publish cannot be written to buffer 
-                //   beause of insufficient space?
+                //   because of insufficient space?
                 if publish.state.should_publish(time::now()) {
                     self.publish(publish, send_buffer)?;
                 }
@@ -241,7 +241,7 @@ impl PublishQueue {
                 Ok(())
             },
             Err(mqttrs2::Error::WriteZero) => {
-                warn!("cannot encode pubrel to buffer: not enaugh space");
+                warn!("cannot encode pubrel to buffer: not enough space");
                 Ok(())
             },
             Err(e) => {

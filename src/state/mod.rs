@@ -31,7 +31,7 @@ pub(crate) mod pid;
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum ConnectionState {
-    /// TCP Connection established, but nothis has happened yet
+    /// TCP Connection established, but nothing has happened yet
     InitialState,
 
     /// The Connect package is sent but the connack is not received yet
@@ -56,8 +56,8 @@ pub(crate) struct State<'l, M: RawMutex> {
     pub(crate) subscribes: SubQueue,
 
     // Signal is sent, when a request is added
-    // TODO update to emassy_sync::watch::Watch is update is there
-    pub(crate) on_requst_added: Signal<M, usize>,
+    // TODO update to embassy_sync::watch::Watch is update is there
+    pub(crate) on_request_added: Signal<M, usize>,
 
     pub(crate) pid_source: PidSource
 
@@ -77,7 +77,7 @@ impl <'l, M: RawMutex> State<'l, M> {
             received_publishes: ReceivedPublishQueue::new(),
             subscribes: SubQueue::new(),
 
-            on_requst_added: Signal::new(),
+            on_request_added: Signal::new(),
 
             pid_source: PidSource::new()
         }
@@ -139,7 +139,7 @@ impl <'l, M: RawMutex> State<'l, M> {
                 Ok(true)
             },
             Err(Error::WriteZero) => {
-                debug!("cannot write {} packet: buffer not enaugh space", packet.get_type());
+                debug!("cannot write {} packet: buffer not enough space", packet.get_type());
                 Ok(false)
             },
             Err(e) => {
@@ -154,15 +154,15 @@ impl <'l, M: RawMutex> State<'l, M> {
         match connack.code {
             mqttrs2::ConnectReturnCode::Accepted => {
                 self.set_connection_state(ConnectionState::Connected);
-                info!("connction to broker established");
+                info!("connection to broker established");
 
-                // Add autosubscribe requests
+                // Add auto subscribe requests
                 self.subscribes.add_auto_subscribes(
                     &self.config.auto_subscribes,
                     || self.pid_source.next_pid()
                 );
 
-                self.on_requst_added.signal(5);
+                self.on_request_added.signal(5);
 
                 Ok(Some(MqttEvent::Connected))
             },

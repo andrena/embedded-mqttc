@@ -16,7 +16,7 @@ impl PidSource {
         }
     }
 
-    /// Genrates the next unique pid for the packet
+    /// Generates the next unique pid for the packet
     ///
     pub(crate) fn next_pid(&self) -> Pid {
         self.counter.lock(|pid|{

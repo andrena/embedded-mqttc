@@ -120,7 +120,7 @@ mod tests {
     }
 
     #[test]
-    fn test_sould_send_ping_waiting() {
+    fn test_should_send_ping_waiting() {
         time::test_time::set_static_now();
 
         let start = time::now();

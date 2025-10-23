@@ -106,7 +106,7 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
     /// But concurrent receives from multiple clients result in not all clients to receive all publishes
     pub fn client<'a>(&'a self) -> MqttClient<'a, M> {
         MqttClient{
-            control_reveiver: &self.control_sender,
+            control_receiver: &self.control_sender,
             request_sender: self.request_receiver.sender(),
             received_publishes: self.received_publishes.receiver()
         }
@@ -200,7 +200,7 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
             // - a new Request (e.g. Publish) is added to process it
             // - sending a ping message is required
             let network_future = self.network_send_receive(connection);
-            let on_request_signal_future = self.state.on_requst_added.wait();
+            let on_request_signal_future = self.state.on_request_added.wait();
             let next_ping_future = self.state.on_ping_required();
             match select3(network_future, on_request_signal_future, next_ping_future).await {
                 Either3::First(res) => {
@@ -224,7 +224,7 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
             let recv_reader = recv_buffer.create_reader();
             let mut send_buffer_writer = send_buffer.create_writer();
 
-            // Try to read a package from the receive buffer and write answers (e.g. acknowledgements) 
+            // Try to read a package from the receive buffer and write answers (e.g. acknowledgements)
             // to the send buffer
             self.try_package_receive(&mut send_buffer_writer, recv_reader).await?; 
 
@@ -255,13 +255,13 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
                                 debug!("new unsubscribe request added to queue");
                             },
                 MqttRequest::Disconnect => {
-                    self.state.on_requst_added.signal(0);
+                    self.state.on_request_added.signal(0);
                     return Ok(());
                 },
             }
 
             // Signal that a new request is added
-            self.state.on_requst_added.signal(0);
+            self.state.on_request_added.signal(0);
         }
     }
 
@@ -327,10 +327,10 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
 
         send_buffer_writer.write_mqtt_packet_sync(&Packet::Disconnect).map_err(|err| {
             match err {
-                MqttPacketError::NotEnaughBufferSpace => {
+                MqttPacketError::NotEnoughBufferSpace => {
                     warn!("could not write Disconnect to send buffer: full");
                     MqttError::BufferFull
-                },
+                }
                 MqttPacketError::CodecError => MqttError::CodecError,
                 MqttPacketError::IoError(_) => MqttError::ConnectionFailed(NetworkError::ConnectionFailed),
                 MqttPacketError::NetworkError(network_error) => MqttError::ConnectionFailed(network_error),
@@ -394,7 +394,7 @@ mod test {
     use mqttrs2::{Connack, ConnectReturnCode, Packet, PacketType, QoS, Suback, SubscribeReturnCodes};
     use crate::time;
 
-    use crate::network::{fake::{self, ConnectionRessources, ReadAtomic}, mqtt::{ReadMqttPacket, WriteMqttPacket}};
+    use crate::network::{fake::{self, ConnectionResources, ReadAtomic}, mqtt::{ReadMqttPacket, WriteMqttPacket}};
     use crate::ClientConfig;
 
     use super::MqttEventLoop;
@@ -430,7 +430,7 @@ mod test {
 
         config.client_id.push_str("asjdkaljs").unwrap();
 
-        let connection_resources = ConnectionRessources::<1024>::new();
+        let connection_resources = ConnectionResources::<1024>::new();
 
         let (mut client, server) = fake::new_connection(&connection_resources);
 
@@ -492,7 +492,7 @@ mod test {
 
         time::test_time::set_static_now();
 
-        let connection_resources = ConnectionRessources::<1024>::new();
+        let connection_resources = ConnectionResources::<1024>::new();
         let (mut client, server) = fake::new_connection(&connection_resources);
 
         let event_loop = MqttEventLoop::<CriticalSectionRawMutex, 1024>::new(config);
@@ -548,7 +548,7 @@ mod test {
             auto_subscribes: Vec::new()
         };
 
-        let connection_resources = ConnectionRessources::<1024>::new();
+        let connection_resources = ConnectionResources::<1024>::new();
         let (mut client, server) = fake::new_connection(&connection_resources);
 
         let event_loop = MqttEventLoop::<CriticalSectionRawMutex, 1024>::new(config);

@@ -8,7 +8,7 @@ use crate::{MqttError, MqttEvent, MqttPublish, MqttRequest, Topic, UniqueID};
 #[derive(Clone)]
 pub struct MqttClient<'a, M: RawMutex> {
 
-    pub(super) control_reveiver: &'a PubSubChannel<M, MqttEvent, 4, 16, 8>,
+    pub(super) control_receiver: &'a PubSubChannel<M, MqttEvent, 4, 16, 8>,
     pub(super) request_sender: Sender<'a, M, MqttRequest, 4>,
     pub(super) received_publishes: Receiver<'a, M, MqttPublish, 4>
 
@@ -18,14 +18,14 @@ impl <'a, M: RawMutex> MqttClient<'a, M> {
 
     /// Publish a MQTT message with the given parameters
     /// 
-    /// Waits until there is a successful publish result. The publish is successful after all acknolodgements 
-    /// accordings to the selected [`QoS`] have bee exchanged
+    /// Waits until there is a successful publish result. The publish is successful after all acknowledgements 
+    /// according to the selected [`QoS`] have been exchanged
     pub async fn publish(&self, topic: &str, payload: &[u8], qos: QoS, retain: bool) -> Result<(), MqttError> {
 
         let id = UniqueID::new();
         let publish = MqttPublish::new(topic, payload, qos, retain);
 
-        let mut subscriber = self.control_reveiver.subscriber()
+        let mut subscriber = self.control_receiver.subscriber()
             .map_err(|e| {
                 error!("error subscribing to control receiver: {}", e);
                 MqttError::InternalError
@@ -50,11 +50,11 @@ impl <'a, M: RawMutex> MqttClient<'a, M> {
 
     /// Subscribe to a topic
     /// 
-    /// The method returns after the suback has bee received
+    /// The method returns after the suback has been received
     pub async fn subscribe(&self, topic: &str) -> Result<(), MqttError> {
         let id = UniqueID::new();
 
-        let mut subscriber = self.control_reveiver.subscriber()
+        let mut subscriber = self.control_receiver.subscriber()
             .map_err(|e| {
                 error!("error subscribing to control receiver: {}", e);
                 MqttError::InternalError
@@ -81,11 +81,11 @@ impl <'a, M: RawMutex> MqttClient<'a, M> {
 
     /// unsubscribe from a topic
     /// 
-    /// waits until the unsuback has bee received
+    /// waits until the unsuback has been received
     pub async fn unsubscribe(&self, topic: &str) -> Result<(), MqttError> {
         let id = UniqueID::new();
 
-        let mut subscriber = self.control_reveiver.subscriber()
+        let mut subscriber = self.control_receiver.subscriber()
             .map_err(|e| {
                 error!("error subscribing to control receiver: {}", e);
                 MqttError::InternalError
@@ -122,7 +122,7 @@ impl <'a, M: RawMutex> MqttClient<'a, M> {
 
     /// wait for the next event matching the `matcher`
     pub async fn on<F>(&self, matcher: F) where F: Fn(&MqttEvent) -> bool {
-        let mut sub = self.control_reveiver.subscriber().unwrap();
+        let mut sub = self.control_receiver.subscriber().unwrap();
 
         loop {
             let event = sub.next_message_pure().await;

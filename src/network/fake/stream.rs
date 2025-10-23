@@ -86,7 +86,7 @@ impl <const N: usize> BufferedStreamInner<N> {
         buf.copy_from_slice(&reader[..n]);
         reader.add_bytes_read(n);
 
-        // Sigals wakers that bytes were read
+        // Signals wakers that bytes were read
         if n > 0 {
             self.write_waker.wake();
         }
@@ -115,7 +115,7 @@ impl <const N: usize> BufferedStreamInner<N> {
         target.copy_from_slice(&buf[..n]);
         writer.commit(n).unwrap();
 
-        // Sigals wakers that bytes were written
+        // Signals wakers that bytes were written
         if n > 0 {
             self.read_waker.wake();
         }

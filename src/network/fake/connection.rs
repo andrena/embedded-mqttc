@@ -87,12 +87,12 @@ impl <'a, const N: usize> NetworkConnection for ClientConnection<'a, N> {
     }
 }
 
-pub struct ConnectionRessources<const N: usize> {
+pub struct ConnectionResources<const N: usize> {
     client_to_server: BufferedStream<N>,
     server_to_client: BufferedStream<N>
 }
 
-impl <const N: usize> ConnectionRessources<N> {
+impl <const N: usize> ConnectionResources<N> {
     pub fn new() -> Self {
         Self {
             client_to_server: BufferedStream::new(),
@@ -101,7 +101,7 @@ impl <const N: usize> ConnectionRessources<N> {
     }
 }
 
-pub fn new_connection<'a, const N: usize>(resources: &'a ConnectionRessources<N>) 
+pub fn new_connection<'a, const N: usize>(resources: &'a ConnectionResources<N>)
     -> (ClientConnection<'a, N>, ServerConnection<'a, N>) {
     
     let client = ClientConnection{
@@ -202,12 +202,12 @@ mod connection_tests {
 
     use embedded_io_async::{Read, Write};
 
-    use super::{new_connection, ConnectionRessources};
+    use super::{new_connection, ConnectionResources};
 
     #[tokio::test]
     async fn test_connection() {
 
-        let resources = ConnectionRessources::<4>::new();
+        let resources = ConnectionResources::<4>::new();
 
         let (mut client, mut server) = new_connection(&resources);
 
