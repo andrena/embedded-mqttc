@@ -52,9 +52,9 @@ impl <M: RawMutex, T, const N: usize> AsyncReceiver<T> for Channel<M, T, N> {
     }
 }
 
-/// The main eventloop of the MQTT client
+/// The main event loop of the MQTT client
 /// 
-/// This struct holds all state an buffers for the mqtt client
+/// This struct holds all state and buffers for the mqtt client
 pub struct MqttEventLoop<'l, M: RawMutex, const B: usize> {
     recv_buffer: RefCell<Buffer<[u8; B]>>,
     send_buffer: RefCell<Buffer<[u8; B]>>,
@@ -196,8 +196,8 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
             }
             
             // Send / Receive Network traffic
-            // Interript this when ...
-            // - a new Request (e. g. Publish) is added to process it
+            // Interrupt this when ...
+            // - a new Request (e.g. Publish) is added to process it
             // - sending a ping message is required
             let network_future = self.network_send_receive(connection);
             let on_request_signal_future = self.state.on_requst_added.wait();
@@ -224,11 +224,11 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
             let recv_reader = recv_buffer.create_reader();
             let mut send_buffer_writer = send_buffer.create_writer();
 
-            // Try to read a package from the receive buffer and write answers (e. g. acknoledgements) 
+            // Try to read a package from the receive buffer and write answers (e.g. acknowledgements) 
             // to the send buffer
             self.try_package_receive(&mut send_buffer_writer, recv_reader).await?; 
 
-            trace!("after try packege_receive: recv_buffer: {} / {}", recv_buffer.remaining_len(), recv_buffer.capacity());
+            trace!("after try package_receive: recv_buffer: {} / {}", recv_buffer.remaining_len(), recv_buffer.capacity());
         }
     }
 
@@ -282,7 +282,7 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
                 Err(e) => {
                     tries += 1;
                     if tries < 5 {
-                        warn!("{}. try to connecto to host failed", tries);
+                        warn!("{}. try to connect to host failed", tries);
                         time::sleep(Duration::from_secs(3)).await;
                     } else {
                         error!("{} tries to connect failed", tries);
@@ -298,7 +298,7 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
         self.state.reset();
             
         // Poll both futures
-        // Select should never befinished because both jobs are infinite
+        // Select should never be finished because both jobs are infinite
         let network_future = self.work_network(connection);
         let request_future = self.work_request_receive();
 
@@ -364,7 +364,7 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
                     break;
                 }
                 Err(MqttError::ConnectionFailed(e)) => {
-                    warn!("reconnecting, conection faild: {}", e);
+                    warn!("reconnecting, connection failed: {}", e);
                     self.connect(connection).await?;
                 }
                 Err(err) => {

@@ -42,7 +42,7 @@ impl <'a, M: RawMutex> MqttClient<'a, M> {
                     }
                 }
             } else {
-                error!("error reading subscrition: lost messages");
+                error!("error reading subscription: lost messages");
                 return Err(MqttError::InternalError);
             }
         }
@@ -73,7 +73,7 @@ impl <'a, M: RawMutex> MqttClient<'a, M> {
                     }
                 }
             } else {
-                error!("error reading subscrition: lost messages");
+                error!("error reading subscription: lost messages");
                 return Err(MqttError::InternalError);
             }
         }
@@ -104,7 +104,7 @@ impl <'a, M: RawMutex> MqttClient<'a, M> {
                     }
                 }
             } else {
-                error!("error reading subscrition: lost messages");
+                error!("error reading subscription: lost messages");
                 return Err(MqttError::InternalError);
             }
         }
