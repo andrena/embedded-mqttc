@@ -31,7 +31,9 @@ macro_rules! trace {
         ::defmt::trace!($s $(, $x)*);
         #[cfg(feature = "tracing")]
         ::tracing::trace!($s $(, crate::fmt::Debug2Format($x))*);
-        #[cfg(not(any(feature="defmt", feature = "tracing")))]
+        #[cfg(feature = "log")]
+        ::log::trace!($s $(, crate::fmt::Debug2Format($x))*);
+        #[cfg(not(any(feature="defmt", feature = "tracing", feature = "log")))]
         let _ = ($( & $x ),*);
     };
 }
@@ -44,7 +46,9 @@ macro_rules! debug {
         ::defmt::debug!($s $(, $x)*);
         #[cfg(feature = "tracing")]
         ::tracing::debug!($s $(, crate::fmt::Debug2Format($x))*);
-        #[cfg(not(any(feature="defmt", feature = "tracing")))]
+        #[cfg(feature = "log")]
+        ::log::debug!($s $(, crate::fmt::Debug2Format($x))*);
+        #[cfg(not(any(feature="defmt", feature = "tracing", feature = "log")))]
         let _ = ($( & $x ),*);
     };
 }
@@ -56,7 +60,9 @@ macro_rules! info {
         ::defmt::info!($s $(, $x)*);
         #[cfg(feature = "tracing")]
         ::tracing::info!($s $(, crate::fmt::Debug2Format($x))*);
-        #[cfg(not(any(feature="defmt", feature = "tracing")))]
+        #[cfg(feature = "log")]
+        ::log::info!($s $(, crate::fmt::Debug2Format($x))*);
+        #[cfg(not(any(feature="defmt", feature = "tracing", feature = "log")))]
         let _ = ($( & $x ),*);
     };
 }
@@ -68,7 +74,9 @@ macro_rules! warn {
         ::defmt::warn!($s $(, $x)*);
         #[cfg(feature = "tracing")]
         ::tracing::warn!($s $(, crate::fmt::Debug2Format($x))*);
-        #[cfg(not(any(feature="defmt", feature = "tracing")))]
+        #[cfg(feature = "log")]
+        ::log::warn!($s $(, crate::fmt::Debug2Format($x))*);
+        #[cfg(not(any(feature="defmt", feature = "tracing", feature = "log")))]
         let _ = ($( & $x ),*);
     };
 }
@@ -80,7 +88,9 @@ macro_rules! error {
         ::defmt::error!($s $(, $x)*);
         #[cfg(feature = "tracing")]
         ::tracing::error!($s $(, crate::fmt::Debug2Format($x))*);
-        #[cfg(not(any(feature="defmt", feature = "tracing")))]
+        #[cfg(feature = "log")]
+        ::log::error!($s $(, crate::fmt::Debug2Format($x))*);
+        #[cfg(not(any(feature="defmt", feature = "tracing", feature = "log")))]
         let _ = ($( & $x ),*);
     };
 }
