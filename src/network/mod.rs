@@ -10,7 +10,7 @@ use crate::fmt::Debug2Format;
 #[cfg(feature = "embassy")]
 pub mod embassy;
 
-#[cfg(feature = "std")]
+#[cfg(feature = "tokio")]
 pub mod std;
 
 pub mod fake;

@@ -6,7 +6,7 @@
 #[cfg(feature = "embassy")]
 pub(crate) use embassy_time::{Duration, Instant};
 
-#[cfg(feature = "std")]
+#[cfg(feature = "tokio")]
 pub(crate) use std::time::{Duration, Instant};
 
 pub(crate) fn now() -> Instant {
