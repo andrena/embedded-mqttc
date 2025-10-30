@@ -20,7 +20,7 @@ pub(crate) fn now() -> Instant {
     panic!("now() not supported in tests without std feature");
 }
 
-#[cfg(feature = "std")]
+#[cfg(feature = "tokio")]
 pub(crate) type SleepFuture = tokio::time::Sleep;
 
 #[cfg(feature = "embassy")]
@@ -35,7 +35,7 @@ fn sleep_intern(duration: Duration) -> SleepFuture {
     Timer::after(duration)
 }
 
-#[cfg(feature = "std")]
+#[cfg(feature = "tokio")]
 fn sleep_intern(duration: Duration) -> SleepFuture {
     use tokio::time::sleep;
 
@@ -54,7 +54,7 @@ pub(crate) async fn sleep(duration: Duration) {
     panic!("sleep({}) not supported in tests without std feature", duration);
 }
 
-#[cfg(all(test, feature = "std"))]
+#[cfg(all(test, feature = "std", feature = "tokio"))]
 pub(crate) mod test_time {
     extern crate std;
 
@@ -204,7 +204,7 @@ pub(crate) mod test_time {
 
 }
 
-#[cfg(all(test, feature = "std"))]
+#[cfg(all(test, feature = "std", feature = "tokio"))]
 mod tests {
 
     use crate::time::test_time::TimeSource;

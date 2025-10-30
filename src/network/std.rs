@@ -1,8 +1,5 @@
 extern crate std;
 
-// #[cfg(all(feature = "defmt", feature = "std"))]
-// compile_error!("std cannot be logged with defmt!");
-
 use embedded_io_async::Write;
 use embedded_io_async::{ErrorKind, ErrorType, Read};
 use tokio::net::{TcpStream, ToSocketAddrs};

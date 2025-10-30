@@ -380,7 +380,7 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
     }
 }
 
-#[cfg(all(test, feature = "std"))]
+#[cfg(all(test, feature = "std", feature = "tokio"))]
 mod test {
     use core::pin::Pin;
 

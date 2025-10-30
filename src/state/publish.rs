@@ -298,7 +298,7 @@ impl PublishQueue {
 
 }
 
-#[cfg(all(test, feature = "std"))]
+#[cfg(all(test, feature = "std", feature = "tokio"))]
 mod tests {
     extern crate std;
 

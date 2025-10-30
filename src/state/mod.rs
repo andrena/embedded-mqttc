@@ -322,7 +322,7 @@ impl <'l, M: RawMutex> State<'l, M> {
 
 }
 
-#[cfg(all(test, feature = "std"))]
+#[cfg(all(test, feature = "std", feature = "tokio"))]
 mod tests {
     use core::time::Duration;
     use std::time::Instant;

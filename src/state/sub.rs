@@ -331,7 +331,7 @@ impl SubQueue {
     }
 }
 
-#[cfg(all(test, feature = "std"))]
+#[cfg(all(test, feature = "std", feature = "tokio"))]
 mod tests {
     use embytes_buffer::{new_stack_buffer, ReadWrite};
     use heapless::Vec;
