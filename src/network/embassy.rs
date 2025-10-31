@@ -3,7 +3,7 @@
 use core::mem;
 
 use embassy_futures::join::join;
-use embassy_net::{dns::{DnsQueryType, DnsSocket}, tcp::TcpSocket, IpAddress, IpEndpoint, Stack};
+use embassy_net::{dns::{DnsQueryType, DnsSocket}, tcp::TcpSocket, IpAddress, IpEndpoint, Ipv4Address, Stack};
 use embedded_io_async::{ErrorKind, ErrorType, Read, ReadReady, Write, WriteReady};
 
 use crate::network::{NetworkConnection, NetworkError, TryRead, TryWrite};
@@ -117,6 +117,9 @@ impl <'a> EmbassyNetworkConnection<'a> {
     }
 
     async fn dns_resolve(&self, hostname: &str) -> Result<IpAddress, NetworkError> {
+        if hostname == "localhost" {
+            return Ok(IpAddress::Ipv4(Ipv4Address::from([127,0,0,1])));
+        }
         let dns_client = DnsSocket::new(self.stack);
 
         let ip_v6_future = async {
@@ -196,7 +199,7 @@ impl <'a> EmbassyNetworkConnection<'a> {
             port: self.port
         };
         
-        info!("connecting...");
+        info!("connecting... {:?}",endpoint);
         socket.connect(endpoint).await.map_err(|e| {
             error!("tcp connection failed: {}", e);
             NetworkError::from(e)
