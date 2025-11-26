@@ -364,7 +364,7 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
                     break;
                 }
                 Err(MqttError::ConnectionFailed(e)) => {
-                    warn!("reconnecting, connection failed: {}", e);
+                    warn!("connection failed: {}, reconnecting", e);
                     self.connect(connection).await?;
                 }
                 Err(err) => {
