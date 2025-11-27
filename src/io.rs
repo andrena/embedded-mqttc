@@ -53,7 +53,7 @@ impl <M: RawMutex, T, const N: usize> AsyncReceiver<T> for Channel<M, T, N> {
 }
 
 /// The main event loop of the MQTT client
-/// 
+///
 /// This struct holds all state and buffers for the mqtt client
 pub struct MqttEventLoop<'l, M: RawMutex, const B: usize> {
     recv_buffer: RefCell<Buffer<[u8; B]>>,
@@ -70,7 +70,7 @@ impl <M: RawMutex, const B: usize> MqttEventLoop<'static, M, B> {
 
     /// Create a new event loop
     pub fn new(config: ClientConfig) -> Self {
-        
+
         Self {
             recv_buffer: RefCell::new(new_stack_buffer::<B>()),
             send_buffer: RefCell::new(new_stack_buffer::<B>()),
@@ -87,7 +87,7 @@ impl <M: RawMutex, const B: usize> MqttEventLoop<'static, M, B> {
 impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
 
     pub fn new_with_last_will(config: ClientConfig, last_will: LastWill<'l>) -> Self {
-        
+
         Self {
             recv_buffer: RefCell::new(new_stack_buffer::<B>()),
             send_buffer: RefCell::new(new_stack_buffer::<B>()),
@@ -101,7 +101,7 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
     }
 
     /// Create a client for the event loop. The Client can be used to publish and receive messages, ...
-    /// 
+    ///
     /// There can be multiple [`MqttClient`] for one [`MqttEventLoop`].
     /// But concurrent receives from multiple clients result in not all clients to receive all publishes
     pub fn client<'a>(&'a self) -> MqttClient<'a, M> {
@@ -142,25 +142,25 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
         Ok(())
     }
 
-    /// Try to read a packet from recv buffer. 
+    /// Try to read a packet from recv buffer.
     async fn try_package_receive(&self, send_buffer: &mut impl BufferWriter, recv_buffer: impl BufferReader) -> Result<(), MqttError> {
         if recv_buffer.is_empty() {
             trace!("try_package_receive(): recv_buffer is empty, cannot read packet");
             return Ok(())
         }
-        
+
         let packet_op = decode_slice_with_len(&recv_buffer[..])
             .map_err(|e| {
                 error!("try_package_receive(): error decoding package: {}", e);
                 MqttError::CodecError
             })?;
-        
+
         if let Some((len, packet)) = packet_op {
             debug!("try_package_receive(): decoded packet from recv_buffer: len = {}, kind = {}", len, packet.get_type());
             recv_buffer.add_bytes_read(len);
-            let events = 
+            let events =
                 self.state.process_packet(&packet, send_buffer, &self.received_publishes).await?;
-            
+
             if ! events.is_empty() {
                 for event in events {
                     debug!("try_package_receive(): processing packet -> MqttEvent: {}", &event);
@@ -185,7 +185,7 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
         loop {
             // Try to send packets first before blocking for network traffic
             // Send packets (Ping, Connect, Publish)
-            {   
+            {
                 let mut send_buffer = self.send_buffer.borrow_mut();
                 let mut send_buffer_writer = send_buffer.create_writer();
                 self.state.send_packets(&mut send_buffer_writer, &self.control_sender)?;
@@ -193,7 +193,7 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
                 trace!("after network send: send_buffer {} / {}", send_buffer.remaining_len(), send_buffer.remaining_capacity());
 
             }
-            
+
             // Send / Receive Network traffic
             // Interrupt this when ...
             // - a new Request (e.g. Publish) is added to process it
@@ -225,7 +225,7 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
 
             // Try to read a package from the receive buffer and write answers (e.g. acknowledgements)
             // to the send buffer
-            self.try_package_receive(&mut send_buffer_writer, recv_reader).await?; 
+            self.try_package_receive(&mut send_buffer_writer, recv_reader).await?;
 
             trace!("after try package_receive: recv_buffer: {} / {}", recv_buffer.remaining_len(), recv_buffer.capacity());
         }
@@ -267,7 +267,7 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
     async fn connect<N: NetworkConnection>(&self, connection: &mut N) -> Result<(), MqttError> {
         self.send_buffer.borrow_mut().reset();
         self.recv_buffer.borrow_mut().reset();
-        
+
         let mut tries: usize = 0;
         loop {
 
@@ -295,7 +295,7 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
     async fn work<N: NetworkConnection>(&self, connection: &mut N) -> Result<(), MqttError> {
         // Reset state on new connection
         self.state.reset();
-            
+
         // Poll both futures
         // Select should never be finished because both jobs are infinite
         let network_future = self.work_network(connection);
@@ -320,7 +320,7 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
     }
 
     async fn disconnect<N: NetworkConnection>(&self, connection: &mut N) -> Result<(), MqttError> {
-        
+
         let mut send_buffer = self.send_buffer.borrow_mut();
         let mut send_buffer_writer = send_buffer.create_writer();
 
@@ -341,7 +341,7 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
         connection.send_all(&mut send_buffer_reader).await
             .map_err(|e| MqttError::ConnectionFailed(e))?;
 
-        // Reset send buffer to be ready to 
+        // Reset send buffer to be ready to
         self.recv_buffer.borrow_mut().reset();
 
         Ok(())
@@ -364,6 +364,7 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
                 }
                 Err(MqttError::ConnectionFailed(e)) => {
                     warn!("connection failed: {}, reconnecting", e);
+                    self.state.reset();
                     self.connect(connection).await?;
                 }
                 Err(err) => {
@@ -445,7 +446,7 @@ mod test {
             let client_future = async {
                 mqtt_client.subscribe("test").await.unwrap();
             };
-            
+
             let server_future = async {
 
                 let connect = server.read_mqtt_packet(|p| p.get_type()).await.unwrap();
@@ -465,10 +466,10 @@ mod test {
 
                 let mut return_codes = heapless::Vec::new();
                 return_codes.push(SubscribeReturnCodes::Success(QoS::AtLeastOnce)).unwrap();
-                
+
                 server.write_mqtt_packet(&Packet::Suback(Suback{
                     pid: subscribe.pid,
-                    return_codes 
+                    return_codes
                 })).await.unwrap();
             };
 
@@ -500,7 +501,7 @@ mod test {
             let client = Pin::new(&mut client);
             event_loop.run(client).await.unwrap();
         };
-            
+
         let server_future = async {
 
             let connect = server.read_mqtt_packet(|p| p.get_type()).await.unwrap();
@@ -561,7 +562,7 @@ mod test {
         let client_future = async {
             mqtt_client.disconnect().await;
         };
-            
+
         let server_future = async {
 
             let connect = server.read_mqtt_packet(|p| p.get_type()).await.unwrap();

@@ -17,6 +17,7 @@ use sub::SubQueue;
 
 use crate::io::AsyncSender;
 use crate::{time, ClientConfig, MqttError, MqttEvent, MqttPublish};
+use crate::network::NetworkError;
 
 pub(crate) const KEEP_ALIVE: usize = 60;
 
@@ -85,6 +86,9 @@ impl <'l, M: RawMutex> State<'l, M> {
 
     pub fn reset(&self) {
         self.set_connection_state(ConnectionState::InitialState);
+        self.ping.lock(|ping| {
+            ping.borrow_mut().reset();
+        });
     }
 
     fn set_connection_state(&self, new_state: ConnectionState) {
@@ -228,7 +232,7 @@ impl <'l, M: RawMutex> State<'l, M> {
         // Do not do anything else if the ping delay is critical (near keepalive)
         if is_critical {
             warn!("ping delay is critical: skip network traffic");
-            return Ok(());
+            return Err(MqttError::ConnectionFailed(NetworkError::ConnectionFailed));
         }
 
         // QoS messages for received publishes

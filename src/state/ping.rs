@@ -18,6 +18,10 @@ pub(crate) enum PingState {
 }
 
 impl PingState {
+    pub(crate) fn reset(&mut self) {
+        *self = PingState::PingSuccess(Instant::now());
+    }
+
     pub(crate) fn should_send_ping(&self) -> bool {
         let now = time::now();
         match self {
@@ -131,9 +135,9 @@ mod tests {
         time::test_time::set_static_now();
 
         let start = time::now();
-        let ping_state = PingState::AwaitingResponse { 
-            last_success: start - Duration::from_secs((KEEP_ALIVE / 2 + 4) as u64), 
-            ping_request_sent: start
+        let ping_state = PingState::AwaitingResponse {
+            last_success: start - Duration::from_secs((KEEP_ALIVE / 2 + 4) as u64),
+            ping_request_sent: start,
         };
 
         let a_bit_later = start + Duration::from_secs(5);
