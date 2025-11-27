@@ -117,8 +117,7 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
     /// Receives blocking if there are no more bytes to send.
     async fn network_send_receive<N: NetworkConnection>(&self, connection: &mut N) -> Result<(), MqttError> {
         let mut send_buffer = self.send_buffer.borrow_mut();
-        // let mut connection = self.connection.borrow_mut();
-        
+
         if send_buffer.has_remaining_len() {
             let n = connection.send(&mut send_buffer).await
                 .map_err(|e| MqttError::ConnectionFailed(e))?;
@@ -581,7 +580,7 @@ mod test {
             runner_future,
             server_future,
             client_future
-        };
+        }
     }
 }
 

@@ -1,5 +1,4 @@
-
-use crate::time::{ self, Duration, Instant };
+use crate::time::{self, Duration, Instant};
 
 use super::KEEP_ALIVE;
 
@@ -14,8 +13,8 @@ pub(crate) enum PingState {
 
     AwaitingResponse {
         last_success: Instant,
-        ping_request_sent: Instant
-    }
+        ping_request_sent: Instant,
+    },
 }
 
 impl PingState {
@@ -25,11 +24,14 @@ impl PingState {
             PingState::PingSuccess(instant) => {
                 let diff = now - *instant;
                 diff > KEEP_ALIVE_DURATION / 2
-            },
-            PingState::AwaitingResponse { last_success: _, ping_request_sent } => {
+            }
+            PingState::AwaitingResponse {
+                last_success: _,
+                ping_request_sent,
+            } => {
                 let diff = now - *ping_request_sent;
                 diff > PING_RETRY_DURATION
-            },
+            }
         }
     }
 
@@ -42,16 +44,19 @@ impl PingState {
     fn last_success(&self) -> &Instant {
         match self {
             PingState::PingSuccess(instant) => instant,
-            PingState::AwaitingResponse { last_success, ping_request_sent: _ } => last_success,
+            PingState::AwaitingResponse {
+                last_success,
+                ping_request_sent: _,
+            } => last_success,
         }
     }
 
     pub(crate) fn ping_sent(&mut self) {
         let now = time::now();
         info!("ping sent at {}", now);
-        *self = PingState::AwaitingResponse { 
-            last_success: self.last_success().clone(), 
-            ping_request_sent: now.clone()
+        *self = PingState::AwaitingResponse {
+            last_success: self.last_success().clone(),
+            ping_request_sent: now.clone(),
         };
     }
 
@@ -60,7 +65,7 @@ impl PingState {
         *self = PingState::PingSuccess(now.clone())
     }
 
-    /// Returns the duration until the next 
+    /// Returns the duration until the next
     pub(crate) fn ping_pause(&self) -> Option<Duration> {
         let now = time::now();
         match self {
@@ -75,15 +80,18 @@ impl PingState {
                     trace!("send ping in {}", d);
                     Some(d)
                 }
-            },
-            PingState::AwaitingResponse { last_success: _, ping_request_sent } => {
+            }
+            PingState::AwaitingResponse {
+                last_success: _,
+                ping_request_sent,
+            } => {
                 let diff = now - *ping_request_sent;
                 if diff > PING_RETRY_DURATION {
                     None
                 } else {
                     Some(PING_RETRY_DURATION - diff + ERROR_CORRECTING_DURATION)
                 }
-            },
+            }
         }
     }
 }
@@ -95,7 +103,6 @@ mod tests {
     use crate::state::KEEP_ALIVE;
 
     use super::PingState;
-
 
     #[test]
     fn test_should_send_ping_after_success() {
@@ -145,20 +152,23 @@ mod tests {
     }
 
     #[test]
-    fn test_on_ping_sent () {
+    fn test_on_ping_sent() {
         time::test_time::set_static_now();
         let start = time::now();
-        
+
         let mut ping_state = PingState::PingSuccess(start.clone());
 
         let ping_sent = start + Duration::from_secs(20);
         time::test_time::set_time(ping_sent);
         ping_state.ping_sent();
 
-        assert_eq!(ping_state, PingState::AwaitingResponse { 
-            last_success: start, 
-            ping_request_sent: ping_sent 
-        });
+        assert_eq!(
+            ping_state,
+            PingState::AwaitingResponse {
+                last_success: start,
+                ping_request_sent: ping_sent
+            }
+        );
     }
 
     #[test]
@@ -176,11 +186,9 @@ mod tests {
         assert_eq!(ping_state.should_send_ping(), false);
 
         time::test_time::advance_time(Duration::from_millis(10));
-        
-        assert!(! ping_state.is_critical_delay());
+
+        assert!(!ping_state.is_critical_delay());
         assert_eq!(ping_state.ping_pause(), None);
         assert_eq!(ping_state.should_send_ping(), true);
-        
     }
-
 }
