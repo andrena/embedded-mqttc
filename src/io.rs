@@ -581,7 +581,7 @@ mod test {
             runner_future,
             server_future,
             client_future
-        }
+        };
     }
 }
 
