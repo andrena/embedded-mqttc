@@ -248,7 +248,7 @@ impl <'l, M: RawMutex> State<'l, M> {
     }
 
     /// Processes incoming packets
-    pub(crate) async fn process_packet(&self, p: &Packet<'_>, send_buffer: &mut impl BufferWriter, reveived_publishes: &impl AsyncSender<MqttPublish>) -> Result<Vec<MqttEvent, 16>, MqttError> {
+    pub(crate) async fn process_packet(&self, p: &Packet<'_>, send_buffer: &mut impl BufferWriter, received_publishes: &impl AsyncSender<MqttPublish>) -> Result<Vec<MqttEvent, 16>, MqttError> {
 
         match p {
             
@@ -260,7 +260,7 @@ impl <'l, M: RawMutex> State<'l, M> {
             Packet::Publish(publish) => {
                 let publish = self.received_publishes.process_publish(publish).await;
                 if let Some(publish) = publish {
-                    reveived_publishes.send(publish).await;
+                    received_publishes.send(publish).await;
                 }
 
                 Ok(Vec::new())
