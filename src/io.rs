@@ -148,32 +148,47 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
             trace!("try_package_receive(): recv_buffer is empty, cannot read packet");
             return Ok(())
         }
+        let mut offset = 0;
+        while offset < recv_buffer.len() {
 
-        let packet_op = decode_slice_with_len(&recv_buffer[..])
-            .map_err(|e| {
+            let packet_op = decode_slice_with_len(&recv_buffer[offset..]).map_err(|e| {
                 error!("try_package_receive(): error decoding package: {}", e);
                 MqttError::CodecError
             })?;
 
-        if let Some((len, packet)) = packet_op {
-            debug!("try_package_receive(): decoded packet from recv_buffer: len = {}, kind = {}", len, packet.get_type());
-            recv_buffer.add_bytes_read(len);
-            let events =
-                self.state.process_packet(&packet, send_buffer, &self.received_publishes).await?;
+            if let Some((len, packet)) = packet_op {
+                debug!(
+                    "try_package_receive(): decoded packet from recv_buffer: len = {}, kind = {}",
+                    len,
+                    packet.get_type()
+                );
+                recv_buffer.add_bytes_read(len);
+                let events = self
+                    .state
+                    .process_packet(&packet, send_buffer, &self.received_publishes)
+                    .await?;
 
-            if ! events.is_empty() {
-                for event in events {
-                    debug!("try_package_receive(): processing packet -> MqttEvent: {}", &event);
-                    self.control_sender.publisher().unwrap().publish(event).await;
+                if !events.is_empty() {
+                    for event in events {
+                        debug!(
+                            "try_package_receive(): processing packet -> MqttEvent: {}",
+                            &event
+                        );
+                        self.control_sender
+                            .publisher()
+                            .unwrap()
+                            .publish(event)
+                            .await;
+                    }
+                } else {
+                    trace!("try_package_receive(): packet processed, no MqttEvent");
                 }
+                offset += len;
             } else {
-                trace!("try_package_receive(): packet processed, no MqttEvent");
+                trace!("try_package_receive(): no complete packet in recv_buffer");
+                return Ok(());
             }
-
-        } else {
-            trace!("try_package_receive(): no complete packet in recv_buffer");
         }
-
         Ok(())
     }
 
