@@ -209,6 +209,8 @@ impl <'l, M: RawMutex, const B: usize> MqttEventLoop<'l, M, B> {
 
             }
 
+            embassy_futures::yield_now().await;  //TSL: This is really very important for clients that want to reconnect!!! Otherwise there will be async starvation
+
             // Send / Receive Network traffic
             // Interrupt this when ...
             // - a new Request (e.g. Publish) is added to process it
